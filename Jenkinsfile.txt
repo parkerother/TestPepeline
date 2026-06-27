@@ -1,15 +1,35 @@
 pipeline {
-    agent any
+    agent none
     stages {
-       stage('build') {
-          steps {
-             echo 'First Stage'
-          }
-       }
-       stage('test') {
-           steps {
-               echo 'Second stage'
-           }
-       }
+        stage('Run Tests') {
+            parallel {
+                stage('Test On Windows') {
+                    agent {
+                        label "windows"
+                    }
+                    steps {
+                        bat "run-tests.bat"
+                    }
+                    post {
+                        always {
+                            junit "**/TEST-*.xml"
+                        }
+                    }
+                }
+                stage('Test On Linux') {
+                    agent {
+                        label "linux"
+                    }
+                    steps {
+                        sh "run-tests.sh"
+                    }
+                    post {
+                        always {
+                            junit "**/TEST-*.xml"
+                        }
+                    }
+                }
+            }
+        }
     }
- }
+}
